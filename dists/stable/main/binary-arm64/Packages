@@ -1,14 +1,14 @@
 Package: cmc
-Version: 1.0.3
+Version: 1.0.4
 Architecture: arm64
 Maintainer: cmc contributors
 Depends: libmagic1 (>= 1:5.0)
 Recommends: xclip, wl-clipboard
-Filename: pool/main/cmc_1.0.3_arm64.deb
-Size: 13454
-MD5sum: e98e5f2f615147f1da6e6ddb060e0cfb
-SHA1: d8c0cd8e6c0288639f9cc9635ef7cc3ee610555b
-SHA256: 02b83a2d6efd76a7c1c21e7b6d90196c41fd41ceaefd49e0a39433f50c40cdd1
+Filename: pool/main/cmc_1.0.4_arm64.deb
+Size: 13450
+MD5sum: def95941ba095f9de0a3e7f1050d5ef0
+SHA1: ca5e45503798be75bd1d32740858b8a243b3cc91
+SHA256: c63d32e850d14a5f13728fb80b9dc4e50a55dedd78fa92845f0ac9aa222a9a5d
 Section: utils
 Priority: optional
 Homepage: https://github.com/ctrichet/cmc
