@@ -12,6 +12,7 @@ fi
 
 mkdir -p "$REPO_DIR/dists/$DIST/$SECTION/binary-amd64"
 mkdir -p "$REPO_DIR/dists/$DIST/$SECTION/binary-arm64"
+mkdir -p "$REPO_DIR/dists/$DIST/$SECTION/binary-all"
 
 # Copy .deb files to pool
 mkdir -p "$REPO_DIR/pool/$SECTION"
@@ -23,6 +24,11 @@ for arch in amd64 arm64; do
     gzip -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages.gz"
     xz -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages.xz"
 done
+
+# Generate empty binary-all Packages (required by modern apt)
+touch "$REPO_DIR/dists/$DIST/$SECTION/binary-all/Packages"
+gzip -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-all/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-all/Packages.gz"
+xz -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-all/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-all/Packages.xz"
 
 # Copy public key before cd
 if [ -f "cmc.gpg.asc" ]; then
@@ -37,7 +43,7 @@ Label: cmc APT Repository
 Suite: $DIST
 Codename: $DIST
 Date: $(date -Ru)
-Architectures: amd64 arm64
+Architectures: amd64 arm64 all
 Components: $SECTION
 Description: cmc - Copy Multiple Contents
 EOF
