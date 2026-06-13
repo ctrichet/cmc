@@ -45,3 +45,18 @@ Run tests:
 ## Packaging
 
     dpkg-buildpackage -b -uc
+
+## Contributing
+
+Contributions are welcome.
+
+You can:
+
+- Propose new features
+- Report bugs
+- Improve performance or CLI behavior
+- Submit fixes or refactoring
+
+## License
+
+This project is licensed under the GNU GPLv3. See 'LICENSE' for details.
