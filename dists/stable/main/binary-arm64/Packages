@@ -1,0 +1,20 @@
+Package: cmc
+Version: 1.0.0
+Architecture: arm64
+Maintainer: cmc contributors
+Depends: libmagic1 (>= 1:5.0)
+Recommends: xclip, wl-clipboard
+Filename: pool/main/cmc_1.0.0_arm64.deb
+Size: 13450
+MD5sum: 85be3415accb115eaee1de9ffb854ca3
+SHA1: 7ca892b70a4cd9ee969ddfc21ff6db59235af04e
+SHA256: d3b69b212e8f533a524aca69d12ada41d05a1dc13ed5ed03e23f8c77ec190bb4
+Section: utils
+Priority: optional
+Homepage: https://github.com/ctrichet/cmc
+Description: Copy Multiple Contents - collect file contents for LLM context
+ A command-line tool that collects the contents of multiple files and outputs
+ them to stdout, a file, or the system clipboard. Purpose-built for preparing
+ source code and project context for Large Language Models (LLMs).
+License: GPL-3.0+
+
