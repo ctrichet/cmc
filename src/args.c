@@ -1,5 +1,4 @@
 #include "args.h"
-#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,82 +50,224 @@ static int load_exclusion_file(config *cfg, const char *path)
     return 0;
 }
 
-int parse_args(int argc, char *argv[], config *cfg)
+static void print_help(void)
 {
-    memset(cfg, 0, sizeof(*cfg));
+    printf("Usage: cmc [OPTIONS] [PATHS...]\n");
+    printf("Copy file contents to clipboard, file, or stdout.\n\n");
+    printf("Options:\n");
+    printf("  -R, --recursive         Recursively scan directories\n");
+    printf("  -e, --exclude PATTERN   Exclude files matching a glob pattern\n");
+    printf("  -E, --exclude-file FILE Load exclusion patterns from a file\n");
+    printf("  -o, --output FILE       Write output to FILE\n");
+    printf("  -c, --clipboard         Copy output to system clipboard\n");
+    printf("  -s, --symlinks          Follow symbolic links\n");
+    printf("  -p, --paths             Prepend each file with its relative path\n");
+    printf("  -b, --binary            Include binary files\n");
+    printf("  -h, --help              Display this help\n");
+    printf("  -v, --version           Display version information\n");
+}
 
-    static const char *short_opts = "Re:E:o:cspbhv";
-    static const struct option long_opts[] = {
-        {"recursive",    no_argument,       0, 'R'},
-        {"exclude",      required_argument, 0, 'e'},
-        {"exclude-file", required_argument, 0, 'E'},
-        {"output",       required_argument, 0, 'o'},
-        {"clipboard",    no_argument,       0, 'c'},
-        {"symlinks",     no_argument,       0, 's'},
-        {"paths",        no_argument,       0, 'p'},
-        {"binary",       no_argument,       0, 'b'},
-        {"help",         no_argument,       0, 'h'},
-        {"version",      no_argument,       0, 'v'},
-        {0, 0, 0, 0}
-    };
-
-    size_t sel_cap = 0, exc_cap = 0;
-    int ch;
-    int opt_ind = 0;
-
-    while ((ch = getopt_long(argc, argv, short_opts, long_opts, &opt_ind)) != -1) {
-        switch (ch) {
-        case 'R': cfg->recursive = true; break;
+static int handle_short_opts(const char *s, int *i, int argc, char *argv[],
+                             config *cfg, bool *exclude_mode, size_t *exc_cap)
+{
+    for (int j = 1; s[j]; j++) {
+        switch (s[j]) {
+        case 'R':
+            cfg->recursive = true;
+            break;
         case 'e':
-            if (add_pattern(&cfg->exclusion_patterns,
-                            &cfg->n_exclusion_patterns,
-                            &exc_cap, optarg) != 0) {
-                fprintf(stderr, "cmc: memory allocation failed\n");
-                return 1;
+            *exclude_mode = true;
+            if (s[j + 1]) {
+                if (add_pattern(&cfg->exclusion_patterns,
+                                &cfg->n_exclusion_patterns,
+                                exc_cap, s + j + 1) != 0)
+                    return -1;
+                j = (int)strlen(s) - 1;
+            } else if (*i + 1 < argc) {
+                (*i)++;
+                if (add_pattern(&cfg->exclusion_patterns,
+                                &cfg->n_exclusion_patterns,
+                                exc_cap, argv[*i]) != 0)
+                    return -1;
+            } else {
+                fprintf(stderr, "cmc: option '-e' requires an argument\n");
+                return -2;
             }
             break;
         case 'E':
-            if (load_exclusion_file(cfg, optarg) != 0)
-                return 6;
+            *exclude_mode = true;
+            if (s[j + 1]) {
+                if (load_exclusion_file(cfg, s + j + 1) != 0)
+                    return -3;
+                j = (int)strlen(s) - 1;
+            } else if (*i + 1 < argc) {
+                (*i)++;
+                if (load_exclusion_file(cfg, argv[*i]) != 0)
+                    return -3;
+            } else {
+                fprintf(stderr, "cmc: option '-E' requires an argument\n");
+                return -2;
+            }
             break;
-        case 'o': cfg->output_file = optarg; break;
+        case 'o':
+            if (s[j + 1]) {
+                cfg->output_file = (char *)s + j + 1;
+                j = (int)strlen(s) - 1;
+            } else if (*i + 1 < argc) {
+                (*i)++;
+                cfg->output_file = argv[*i];
+            } else {
+                fprintf(stderr, "cmc: option '-o' requires an argument\n");
+                return -2;
+            }
+            break;
         case 'c': cfg->clipboard = true; break;
         case 's': cfg->follow_symlinks = true; break;
         case 'p': cfg->path_mode = true; break;
         case 'b': cfg->binary_mode = true; break;
-        case 'h':
-            printf("Usage: cmc [OPTIONS] [PATHS...]\n");
-            printf("Copy file contents to clipboard, file, or stdout.\n\n");
-            printf("Options:\n");
-            printf("  -R, --recursive         Recursively scan directories\n");
-            printf("  -e, --exclude PATTERN   Exclude files matching a glob pattern\n");
-            printf("  -E, --exclude-file FILE Load exclusion patterns from a file\n");
-            printf("  -o, --output FILE       Write output to FILE\n");
-            printf("  -c, --clipboard         Copy output to system clipboard\n");
-            printf("  -s, --symlinks          Follow symbolic links\n");
-            printf("  -p, --paths             Prepend each file with its relative path\n");
-            printf("  -b, --binary            Include binary files\n");
-            printf("  -h, --help              Display this help\n");
-            printf("  -v, --version           Display version information\n");
-            exit(0);
-        case 'v':
-            printf("cmc version 1.0.0\n");
-            exit(0);
+        case 'h': print_help(); exit(0);
+        case 'v': printf("cmc version %s\n", VERSION); exit(0);
         default:
+            fprintf(stderr, "cmc: unknown option '-%c'\n", s[j]);
             fprintf(stderr, "Try 'cmc --help' for more information.\n");
-            exit(2);
+            return -2;
         }
     }
+    return 0;
+}
 
-    argc -= optind;
-    argv += optind;
+int parse_args(int argc, char *argv[], config *cfg)
+{
+    memset(cfg, 0, sizeof(*cfg));
 
-    for (int i = 0; i < argc; i++) {
-        if (add_pattern(&cfg->selection_patterns,
-                        &cfg->n_selection_patterns,
-                        &sel_cap, argv[i]) != 0) {
-            fprintf(stderr, "cmc: memory allocation failed\n");
-            return 1;
+    size_t sel_cap = 0, exc_cap = 0;
+    bool exclude_mode = false;
+
+    for (int i = 1; i < argc; i++) {
+        const char *arg = argv[i];
+
+        if (strcmp(arg, "--") == 0) {
+            i++;
+            while (i < argc) {
+                if (exclude_mode) {
+                    if (add_pattern(&cfg->exclusion_patterns,
+                                    &cfg->n_exclusion_patterns,
+                                    &exc_cap, argv[i]) != 0) {
+                        fprintf(stderr, "cmc: memory allocation failed\n");
+                        return 1;
+                    }
+                } else {
+                    if (add_pattern(&cfg->selection_patterns,
+                                    &cfg->n_selection_patterns,
+                                    &sel_cap, argv[i]) != 0) {
+                        fprintf(stderr, "cmc: memory allocation failed\n");
+                        return 1;
+                    }
+                }
+                i++;
+            }
+            break;
+        }
+
+        if (arg[0] == '-' && arg[1] != '\0') {
+            if (arg[1] == '-') {
+                const char *opt = arg + 2;
+
+                if (strcmp(opt, "recursive") == 0) {
+                    cfg->recursive = true;
+                } else if (strncmp(opt, "exclude=", 8) == 0) {
+                    exclude_mode = true;
+                    if (add_pattern(&cfg->exclusion_patterns,
+                                    &cfg->n_exclusion_patterns,
+                                    &exc_cap, opt + 8) != 0) {
+                        fprintf(stderr, "cmc: memory allocation failed\n");
+                        return 1;
+                    }
+                } else if (strcmp(opt, "exclude") == 0) {
+                    exclude_mode = true;
+                    if (i + 1 < argc) {
+                        i++;
+                        if (add_pattern(&cfg->exclusion_patterns,
+                                        &cfg->n_exclusion_patterns,
+                                        &exc_cap, argv[i]) != 0) {
+                            fprintf(stderr, "cmc: memory allocation failed\n");
+                            return 1;
+                        }
+                    } else {
+                        fprintf(stderr, "cmc: option '--exclude' requires an argument\n");
+                        return 2;
+                    }
+                } else if (strncmp(opt, "exclude-file=", 13) == 0) {
+                    exclude_mode = true;
+                    if (load_exclusion_file(cfg, opt + 13) != 0)
+                        return 6;
+                } else if (strcmp(opt, "exclude-file") == 0) {
+                    exclude_mode = true;
+                    if (i + 1 < argc) {
+                        i++;
+                        if (load_exclusion_file(cfg, argv[i]) != 0)
+                            return 6;
+                    } else {
+                        fprintf(stderr, "cmc: option '--exclude-file' requires an argument\n");
+                        return 2;
+                    }
+                } else if (strncmp(opt, "output=", 7) == 0) {
+                    cfg->output_file = (char *)opt + 7;
+                } else if (strcmp(opt, "output") == 0) {
+                    if (i + 1 < argc) {
+                        i++;
+                        cfg->output_file = argv[i];
+                    } else {
+                        fprintf(stderr, "cmc: option '--output' requires an argument\n");
+                        return 2;
+                    }
+                } else if (strcmp(opt, "clipboard") == 0) {
+                    cfg->clipboard = true;
+                } else if (strcmp(opt, "symlinks") == 0) {
+                    cfg->follow_symlinks = true;
+                } else if (strcmp(opt, "paths") == 0) {
+                    cfg->path_mode = true;
+                } else if (strcmp(opt, "binary") == 0) {
+                    cfg->binary_mode = true;
+                } else if (strcmp(opt, "help") == 0) {
+                    print_help();
+                    exit(0);
+                } else if (strcmp(opt, "version") == 0) {
+                    printf("cmc version %s\n", VERSION);
+                    exit(0);
+                } else {
+                    fprintf(stderr, "cmc: unknown option '%s'\n", arg);
+                    fprintf(stderr, "Try 'cmc --help' for more information.\n");
+                    return 2;
+                }
+            } else {
+                int ret = handle_short_opts(arg, &i, argc, argv, cfg,
+                                            &exclude_mode, &exc_cap);
+                if (ret == -1) {
+                    fprintf(stderr, "cmc: memory allocation failed\n");
+                    return 1;
+                } else if (ret == -2) {
+                    return 2;
+                } else if (ret == -3) {
+                    return 6;
+                }
+            }
+        } else {
+            if (exclude_mode) {
+                if (add_pattern(&cfg->exclusion_patterns,
+                                &cfg->n_exclusion_patterns,
+                                &exc_cap, arg) != 0) {
+                    fprintf(stderr, "cmc: memory allocation failed\n");
+                    return 1;
+                }
+            } else {
+                if (add_pattern(&cfg->selection_patterns,
+                                &cfg->n_selection_patterns,
+                                &sel_cap, arg) != 0) {
+                    fprintf(stderr, "cmc: memory allocation failed\n");
+                    return 1;
+                }
+            }
         }
     }
 

@@ -12,7 +12,7 @@
 
 #define PATH_CAP 1024
 
-static path_list *g_pl;
+static _Thread_local path_list *g_pl;
 
 int path_list_init(path_list *pl)
 {
@@ -62,7 +62,7 @@ static int nftw_cb(const char *fpath, const struct stat *sb,
 {
     (void)sb;
     (void)ftwbuf;
-    if (typeflag == FTW_D || typeflag == FTW_DP)
+    if (typeflag == FTW_D || typeflag == FTW_DP || typeflag == FTW_DNR)
         return 0;
 
     if (typeflag == FTW_SL || typeflag == FTW_NS)

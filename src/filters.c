@@ -6,7 +6,7 @@
 
 int magic_ctx_init(magic_ctx *ctx)
 {
-    ctx->cookie = magic_open(MAGIC_MIME_TYPE);
+    ctx->cookie = magic_open(MAGIC_MIME_TYPE | MAGIC_SYMLINK);
     if (!ctx->cookie) {
         fprintf(stderr, "cmc: failed to initialize libmagic\n");
         ctx->initialized = 0;
