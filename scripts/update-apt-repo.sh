@@ -15,7 +15,7 @@ mkdir -p "$REPO_DIR/dists/$DIST/$SECTION/binary-arm64"
 
 # Copy .deb files to pool
 mkdir -p "$REPO_DIR/pool/$SECTION"
-find . -name "*.deb" -exec cp {} "$REPO_DIR/pool/$SECTION/" \;
+find . -name "*.deb" -not -path "./$REPO_DIR/*" -exec cp {} "$REPO_DIR/pool/$SECTION/" \;
 
 # Generate Packages files
 for arch in amd64 arm64; do
@@ -58,9 +58,9 @@ done
 # Sign with GPG
 if [ -n "$GPG_PRIVATE_KEY" ]; then
     echo "$GPG_PRIVATE_KEY" | gpg --import --batch --passphrase "$GPG_PASSPHRASE" 2>/dev/null || true
-    gpg --batch --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+    gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
         --detach-sign --armor -o "dists/$DIST/Release.gpg" "dists/$DIST/Release"
-    gpg --batch --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+    gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
         --clearsign -o "dists/$DIST/InRelease" "dists/$DIST/Release"
 fi
 
