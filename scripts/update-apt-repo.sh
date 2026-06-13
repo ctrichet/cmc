@@ -48,20 +48,19 @@ Components: $SECTION
 Description: cmc - Copy Multiple Contents
 EOF
 
-# Add hashes (paths relative to dists/$DIST/)
-(cd "dists/$DIST" && for hash_type in MD5sum SHA1 SHA256; do
-    echo "$hash_type:" >> "Release"
-    find . -type f -not -name "Release" -not -name "Release.gpg" -not -name "InRelease" | sort | while read f; do
-        f="${f#./}"
+# Add hashes
+for hash_type in MD5sum SHA1 SHA256; do
+    echo "$hash_type:" >> "dists/$DIST/Release"
+    find "dists/$DIST" -type f -not -name "Release" -not -name "Release.gpg" -not -name "InRelease" | sort | while read f; do
         case "$hash_type" in
             MD5sum)  h=$(md5sum "$f" | cut -d' ' -f1);;
             SHA1)    h=$(sha1sum "$f" | cut -d' ' -f1);;
             SHA256)  h=$(sha256sum "$f" | cut -d' ' -f1);;
         esac
         s=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null)
-        echo " $h $s $f" >> "Release"
+        echo " $h $s $f" >> "dists/$DIST/Release"
     done
-done)
+done
 
 # Sign with GPG
 if [ -n "$GPG_PRIVATE_KEY" ]; then
