@@ -1,0 +1,30 @@
+# cmc exclusion patterns
+# Copy this file to $XDG_CONFIG_HOME/cmc/.cmc_excludes (default ~/.config/cmc/) and edit as needed.
+# One glob pattern per line. Lines starting with # are comments.
+
+# Build artifacts
+build/*
+target/*
+dist/*
+
+# Dependencies
+node_modules/*
+vendor/*
+
+# Cache / metadata
+.git/*
+__pycache__/*
+*.pyc
+.eggs/*
+
+# IDE files
+*.swp
+*.swo
+.vscode/*
+.idea/*
+
+# Media (usually binary)
+*.png
+*.jpg
+*.pdf
+*.zip

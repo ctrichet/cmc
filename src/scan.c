@@ -81,12 +81,21 @@ static int scan_recursive(path_list *pl, const char *dir, bool follow_symlinks)
     return nftw(dir, nftw_cb, 64, flags);
 }
 
-static int scan_flat(path_list *pl, const char *path)
+static int scan_flat(path_list *pl, const char *path, bool follow_symlinks)
 {
     struct stat st;
-    if (stat(path, &st) != 0) {
-        fprintf(stderr, "cmc: cannot access '%s': %s\n", path, strerror(errno));
-        return -1;
+    if (follow_symlinks) {
+        if (stat(path, &st) != 0) {
+            fprintf(stderr, "cmc: cannot access '%s': %s\n", path, strerror(errno));
+            return -1;
+        }
+    } else {
+        if (lstat(path, &st) != 0) {
+            fprintf(stderr, "cmc: cannot access '%s': %s\n", path, strerror(errno));
+            return -1;
+        }
+        if (S_ISLNK(st.st_mode))
+            return 0;
     }
 
     if (S_ISREG(st.st_mode)) {
@@ -112,7 +121,22 @@ static int scan_flat(path_list *pl, const char *path)
             }
             snprintf(full, needed, "%s/%s", path, entry->d_name);
             struct stat st2;
-            if (stat(full, &st2) == 0 && S_ISREG(st2.st_mode)) {
+            if (follow_symlinks) {
+                if (stat(full, &st2) != 0) {
+                    free(full);
+                    continue;
+                }
+            } else {
+                if (lstat(full, &st2) != 0) {
+                    free(full);
+                    continue;
+                }
+                if (S_ISLNK(st2.st_mode)) {
+                    free(full);
+                    continue;
+                }
+            }
+            if (S_ISREG(st2.st_mode)) {
                 path_list_add(pl, full);
             }
             free(full);
@@ -147,7 +171,7 @@ int scan_paths(config *cfg, path_list *pl)
             if (cfg->recursive) {
                 scan_recursive(pl, cfg->selection_patterns[i], cfg->follow_symlinks);
             } else {
-                scan_flat(pl, cfg->selection_patterns[i]);
+                scan_flat(pl, cfg->selection_patterns[i], cfg->follow_symlinks);
             }
         } else {
             fprintf(stderr, "cmc: warning: '%s' is not a regular file or directory\n",

@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     int ret = parse_args(argc, argv, &cfg);
     if (ret != 0) {
         free_config(&cfg);
-        return ret == 6 ? 6 : (ret == 2 ? 2 : 1);
+        return ret;
     }
 
     magic_ctx mctx;
@@ -45,7 +45,13 @@ int main(int argc, char *argv[])
     path_list_sort(&pl);
 
     buffer out;
-    buf_init(&out);
+    if (buf_init(&out) != 0) {
+        fprintf(stderr, "cmc: memory allocation failed\n");
+        path_list_free(&pl);
+        magic_ctx_free(&mctx);
+        free_config(&cfg);
+        return 1;
+    }
 
     int include_error = 0;
 

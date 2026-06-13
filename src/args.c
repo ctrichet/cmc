@@ -1,8 +1,14 @@
 #include "args.h"
 #include <stdio.h>
+
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #define PAT_CAP 64
 
@@ -21,35 +27,6 @@ static int add_pattern(char ***patterns, size_t *n, size_t *cap, const char *pat
     return 0;
 }
 
-static int load_exclusion_file(config *cfg, const char *path)
-{
-    FILE *f = fopen(path, "r");
-    if (!f) {
-        fprintf(stderr, "cmc: cannot read exclusion file '%s': %s\n", path, strerror(errno));
-        return -1;
-    }
-    char line[4096];
-    while (fgets(line, sizeof(line), f)) {
-        size_t len = strlen(line);
-        while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
-            line[--len] = '\0';
-        if (len == 0) continue;
-        if (add_pattern(&cfg->exclusion_patterns,
-                        &cfg->n_exclusion_patterns,
-                        &(size_t){0}, line) != 0) {
-            fclose(f);
-            return -1;
-        }
-    }
-    if (ferror(f)) {
-        fprintf(stderr, "cmc: error reading exclusion file '%s': %s\n", path, strerror(errno));
-        fclose(f);
-        return -1;
-    }
-    fclose(f);
-    return 0;
-}
-
 static void print_help(void)
 {
     printf("Usage: cmc [OPTIONS] [PATHS...]\n");
@@ -57,7 +34,7 @@ static void print_help(void)
     printf("Options:\n");
     printf("  -R, --recursive         Recursively scan directories\n");
     printf("  -e, --exclude PATTERN   Exclude files matching a glob pattern\n");
-    printf("  -E, --exclude-file FILE Load exclusion patterns from a file\n");
+    printf("  -E, --excludes PATTERN  Exclude files matching a glob (also loads $XDG_CONFIG_HOME/cmc/.cmc_excludes)\n");
     printf("  -o, --output FILE       Write output to FILE\n");
     printf("  -c, --clipboard         Copy output to system clipboard\n");
     printf("  -s, --symlinks          Follow symbolic links\n");
@@ -67,7 +44,7 @@ static void print_help(void)
     printf("  -v, --version           Display version information\n");
 }
 
-static int handle_short_opts(const char *s, int *i, int argc, char *argv[],
+static int handle_short_opts(const char *s, int *i, int argc, const char *argv[],
                              config *cfg, bool *exclude_mode, size_t *exc_cap)
 {
     for (int j = 1; s[j]; j++) {
@@ -95,15 +72,20 @@ static int handle_short_opts(const char *s, int *i, int argc, char *argv[],
             }
             break;
         case 'E':
+            cfg->exclude_flag = true;
             *exclude_mode = true;
             if (s[j + 1]) {
-                if (load_exclusion_file(cfg, s + j + 1) != 0)
-                    return -3;
+                if (add_pattern(&cfg->exclusion_patterns,
+                                &cfg->n_exclusion_patterns,
+                                exc_cap, s + j + 1) != 0)
+                    return -1;
                 j = (int)strlen(s) - 1;
             } else if (*i + 1 < argc) {
                 (*i)++;
-                if (load_exclusion_file(cfg, argv[*i]) != 0)
-                    return -3;
+                if (add_pattern(&cfg->exclusion_patterns,
+                                &cfg->n_exclusion_patterns,
+                                exc_cap, argv[*i]) != 0)
+                    return -1;
             } else {
                 fprintf(stderr, "cmc: option '-E' requires an argument\n");
                 return -2;
@@ -111,7 +93,7 @@ static int handle_short_opts(const char *s, int *i, int argc, char *argv[],
             break;
         case 'o':
             if (s[j + 1]) {
-                cfg->output_file = (char *)s + j + 1;
+                cfg->output_file = s + j + 1;
                 j = (int)strlen(s) - 1;
             } else if (*i + 1 < argc) {
                 (*i)++;
@@ -134,6 +116,40 @@ static int handle_short_opts(const char *s, int *i, int argc, char *argv[],
         }
     }
     return 0;
+}
+
+static void load_cmc_excludes(config *cfg)
+{
+    const char *xdg = getenv("XDG_CONFIG_HOME");
+    char path[4096];
+    if (xdg && xdg[0] != '\0')
+        snprintf(path, sizeof(path), "%s/cmc/.cmc_excludes", xdg);
+    else
+        snprintf(path, sizeof(path), "%s/.config/cmc/.cmc_excludes", getenv("HOME"));
+
+    FILE *f = fopen(path, "r");
+    if (!f) {
+        fprintf(stderr, "cmc: warning: no .cmc_excludes at %s\n", path);
+        return;
+    }
+    char line[4096];
+    size_t exc_cap = 0;
+    while (fgets(line, sizeof(line), f)) {
+        size_t len = strlen(line);
+        while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+            line[--len] = '\0';
+        if (len == 0 || line[0] == '#')
+            continue;
+        if (add_pattern(&cfg->exclusion_patterns,
+                        &cfg->n_exclusion_patterns,
+                        &exc_cap, line) != 0) {
+            fprintf(stderr, "cmc: memory allocation failed\n");
+            break;
+        }
+    }
+    if (ferror(f))
+        fprintf(stderr, "cmc: error reading %s\n", path);
+    fclose(f);
 }
 
 int parse_args(int argc, char *argv[], config *cfg)
@@ -197,22 +213,32 @@ int parse_args(int argc, char *argv[], config *cfg)
                         fprintf(stderr, "cmc: option '--exclude' requires an argument\n");
                         return 2;
                     }
-                } else if (strncmp(opt, "exclude-file=", 13) == 0) {
+                } else if (strncmp(opt, "excludes=", 9) == 0) {
+                    cfg->exclude_flag = true;
                     exclude_mode = true;
-                    if (load_exclusion_file(cfg, opt + 13) != 0)
-                        return 6;
-                } else if (strcmp(opt, "exclude-file") == 0) {
+                    if (add_pattern(&cfg->exclusion_patterns,
+                                    &cfg->n_exclusion_patterns,
+                                    &exc_cap, opt + 9) != 0) {
+                        fprintf(stderr, "cmc: memory allocation failed\n");
+                        return 1;
+                    }
+                } else if (strcmp(opt, "excludes") == 0) {
+                    cfg->exclude_flag = true;
                     exclude_mode = true;
                     if (i + 1 < argc) {
                         i++;
-                        if (load_exclusion_file(cfg, argv[i]) != 0)
-                            return 6;
+                        if (add_pattern(&cfg->exclusion_patterns,
+                                        &cfg->n_exclusion_patterns,
+                                        &exc_cap, argv[i]) != 0) {
+                            fprintf(stderr, "cmc: memory allocation failed\n");
+                            return 1;
+                        }
                     } else {
-                        fprintf(stderr, "cmc: option '--exclude-file' requires an argument\n");
+                        fprintf(stderr, "cmc: option '--excludes' requires an argument\n");
                         return 2;
                     }
                 } else if (strncmp(opt, "output=", 7) == 0) {
-                    cfg->output_file = (char *)opt + 7;
+                    cfg->output_file = opt + 7;
                 } else if (strcmp(opt, "output") == 0) {
                     if (i + 1 < argc) {
                         i++;
@@ -241,15 +267,13 @@ int parse_args(int argc, char *argv[], config *cfg)
                     return 2;
                 }
             } else {
-                int ret = handle_short_opts(arg, &i, argc, argv, cfg,
+                int ret = handle_short_opts(arg, &i, argc, (const char **)argv, cfg,
                                             &exclude_mode, &exc_cap);
                 if (ret == -1) {
                     fprintf(stderr, "cmc: memory allocation failed\n");
                     return 1;
                 } else if (ret == -2) {
                     return 2;
-                } else if (ret == -3) {
-                    return 6;
                 }
             }
         } else {
@@ -270,6 +294,9 @@ int parse_args(int argc, char *argv[], config *cfg)
             }
         }
     }
+
+    if (cfg->exclude_flag)
+        load_cmc_excludes(cfg);
 
     return 0;
 }

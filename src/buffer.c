@@ -37,24 +37,6 @@ int buf_append_str(buffer *b, const char *s)
     return buf_append(b, s, strlen(s));
 }
 
-int buf_read_file(buffer *b, const char *path)
-{
-    FILE *f = fopen(path, "rb");
-    if (!f) return -1;
-
-    char chunk[8192];
-    size_t n;
-    while ((n = fread(chunk, 1, sizeof(chunk), f)) > 0) {
-        if (buf_append(b, chunk, n) != 0) {
-            fclose(f);
-            return -1;
-        }
-    }
-    int err = ferror(f);
-    fclose(f);
-    return err ? -1 : 0;
-}
-
 void buf_free(buffer *b)
 {
     free(b->data);

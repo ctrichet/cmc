@@ -10,7 +10,8 @@ typedef struct {
     bool path_mode;
     bool binary_mode;
     bool clipboard;
-    char *output_file;
+    bool exclude_flag;
+    const char *output_file;
     char **selection_patterns;
     size_t n_selection_patterns;
     char **exclusion_patterns;

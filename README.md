@@ -162,7 +162,7 @@ grep -rl "auth" --include="*.rs" src/ | xargs cmc -p -c
 ### Save project snapshot for review
 
 ```bash
-cmc -R . -E .cmcignore -p -o snapshot.md
+cmc -R . -E "*.md" -p -o snapshot.md
 ```
 
 ---
@@ -177,7 +177,7 @@ cmc [OPTIONS] [PATHS...]
 |-------|-----------------------|-------------------------------------|
 | `-R`  | `--recursive`         | Recursively scan directories        |
 | `-e`  | `--exclude PATTERN`   | Exclude files matching a POSIX glob |
-| `-E`  | `--exclude-file FILE` | Load exclusion patterns from a file |
+| `-E`  | `--excludes PATTERN`  | Exclude files matching a glob (also loads $XDG_CONFIG_HOME/cmc/.cmc_excludes) |
 | `-o`  | `--output FILE`       | Write output to FILE                |
 | `-c`  | `--clipboard`         | Copy output to system clipboard     |
 | `-s`  | `--symlinks`          | Follow symbolic links               |
@@ -212,8 +212,8 @@ Arguments are parsed **left to right**.
 # Select .c and .h files, but exclude test/mock files
 cmc *.c *.h -e *_test.* *_mock.*
 
-# Select everything under src/, exclude what's in .cmcignore
-cmc -R src/ -E .cmcignore
+# Select everything under src/, exclude what's in $XDG_CONFIG_HOME/cmc/.cmc_excludes
+cmc -R src/ -E "*.o"
 
 # Only exclude, no selection: grab everything except .o files
 cmc -R . -e "*.o"
@@ -236,11 +236,17 @@ AND
 
 ---
 
-## cmcignore files
+## Exclusion config file
 
-The `-E` / `--exclude-file` flag loads exclusion patterns from a file — one glob per line, with `#` for comments.
+When `-E` / `--excludes` is used, cmc automatically loads exclusion patterns from a fixed user-config location:
 
-Example `.cmcignore`:
+| If `$XDG_CONFIG_HOME` is set | `$XDG_CONFIG_HOME/cmc/.cmc_excludes` |
+|------------------------------|--------------------------------------|
+| Default                      | `~/.config/cmc/.cmc_excludes`        |
+
+The file format is one glob pattern per line, with `#` for comments (same as the patterns passed via `-e` / `-E` on the command line).
+
+Example `.cmc_excludes`:
 
 ```
 # Build artifacts
@@ -271,13 +277,15 @@ __pycache__/*
 *.zip
 ```
 
-Usage:
+Usage — patterns from command line AND from file are combined:
 
 ```bash
-cmc -R . -E .cmcignore -p -c
+cmc -R . -E "*.txt" -p -c
 ```
 
-This is the recommended way to exclude noise from large projects — keep `.cmcignore` at the project root and commit it to version control.
+If `.cmc_excludes` does not exist, a warning is printed to stderr and cmc continues with only the command-line patterns. A sample file is provided as `.cmc_excludes.example` in the project repository.
+
+This replaces the old `--exclude-file` behavior (which required an explicit file path argument).
 
 ---
 
@@ -360,7 +368,6 @@ c/file.txt
 | 3    | Output file error              |
 | 4    | Clipboard tool not found       |
 | 5    | libmagic initialization error  |
-| 6    | Exclusion file read error      |
 
 Scripts can check `$?` to distinguish failure modes:
 
@@ -505,7 +512,7 @@ cmc treats all files as raw bytes. It does not perform encoding conversion — f
 
 ### "Is cmc safe for secrets?"
 
-cmc copies whatever file contents it is asked to copy. **Do not** run it on directories that contain secrets, `.env` files, API keys, or private keys unless you intend to expose them. A `.cmcignore` file can help exclude sensitive files.
+cmc copies whatever file contents it is asked to copy. **Do not** run it on directories that contain secrets, `.env` files, API keys, or private keys unless you intend to expose them. A `.cmc_excludes` file can help exclude sensitive files.
 
 ### "Can cmc handle very large files or projects?"
 

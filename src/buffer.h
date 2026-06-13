@@ -12,7 +12,6 @@ typedef struct {
 int buf_init(buffer *b);
 int buf_append(buffer *b, const char *data, size_t len);
 int buf_append_str(buffer *b, const char *s);
-int buf_read_file(buffer *b, const char *path);
 void buf_free(buffer *b);
 
 #endif

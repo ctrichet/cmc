@@ -47,6 +47,7 @@ static const char *file_basename(const char *path)
 static int path_under_dir(const char *path, const char *dir)
 {
     size_t dlen = strlen(dir);
+    while (dlen > 0 && dir[dlen - 1] == '/') dlen--;
     if (strncmp(path, dir, dlen) == 0) {
         if (path[dlen] == '/' || path[dlen] == '\0')
             return 1;
@@ -76,6 +77,16 @@ static int matches_exclusion(const char *path, config *cfg)
             return 1;
         if (fnmatch(pat, file_basename(path), 0) == 0)
             return 1;
+        if (path_under_dir(path, pat))
+            return 1;
+        const char *p = path;
+        while ((p = strchr(p, '/')) != NULL) {
+            p++;
+            if (fnmatch(pat, p, FNM_PATHNAME) == 0)
+                return 1;
+            if (path_under_dir(p, pat))
+                return 1;
+        }
     }
     return 0;
 }
