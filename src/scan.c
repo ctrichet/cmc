@@ -137,7 +137,10 @@ static int scan_flat(path_list *pl, const char *path, bool follow_symlinks)
                 }
             }
             if (S_ISREG(st2.st_mode)) {
-                path_list_add(pl, full);
+                if (path_list_add(pl, full) != 0) {
+                    closedir(d);
+                    return -1;
+                }
             }
             free(full);
         }
@@ -158,11 +161,22 @@ int scan_paths(config *cfg, path_list *pl)
     int had_error = 0;
     for (size_t i = 0; i < cfg->n_selection_patterns; i++) {
         struct stat st;
-        if (stat(cfg->selection_patterns[i], &st) != 0) {
+        if (lstat(cfg->selection_patterns[i], &st) != 0) {
             fprintf(stderr, "cmc: error: '%s' does not exist\n",
                     cfg->selection_patterns[i]);
             had_error = 1;
             continue;
+        }
+
+        if (S_ISLNK(st.st_mode)) {
+            if (!cfg->follow_symlinks)
+                continue;
+            if (stat(cfg->selection_patterns[i], &st) != 0) {
+                fprintf(stderr, "cmc: error: '%s' cannot be resolved\n",
+                        cfg->selection_patterns[i]);
+                had_error = 1;
+                continue;
+            }
         }
 
         if (S_ISREG(st.st_mode)) {

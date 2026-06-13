@@ -39,6 +39,18 @@ clean:
 install: $(TARGET)
 	install -d $(DESTDIR)/usr/bin
 	install -m 755 $(TARGET) $(DESTDIR)/usr/bin/cmc
+	install -d $(DESTDIR)/usr/share/doc/cmc
+	install -m 644 .cmc_excludes.example $(DESTDIR)/usr/share/doc/cmc/cmc_excludes.example
+	HOME_DIR=$${SUDO_USER:+$$(getent passwd "$$SUDO_USER" | cut -d: -f6)}; \
+	if [ -z "$$HOME_DIR" ]; then HOME_DIR="$$HOME"; fi; \
+	if [ -n "$$HOME_DIR" ]; then \
+		CONFIG_DIR="$$HOME_DIR/.config/cmc"; \
+		if [ ! -f "$$CONFIG_DIR/.cmc_excludes" ]; then \
+			mkdir -p "$$CONFIG_DIR" && \
+			cp .cmc_excludes.example "$$CONFIG_DIR/.cmc_excludes" && \
+			echo "cmc: created $$CONFIG_DIR/.cmc_excludes"; \
+		fi; \
+	fi
 
 check: $(TARGET)
 	@cd tests && for t in *.sh; do echo "Running $$t..."; bash "$$t" || exit 1; done

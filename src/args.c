@@ -6,7 +6,6 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -122,10 +121,20 @@ static void load_cmc_excludes(config *cfg)
 {
     const char *xdg = getenv("XDG_CONFIG_HOME");
     char path[4096];
-    if (xdg && xdg[0] != '\0')
+    if (xdg && xdg[0] != '\0') {
         snprintf(path, sizeof(path), "%s/cmc/.cmc_excludes", xdg);
-    else
-        snprintf(path, sizeof(path), "%s/.config/cmc/.cmc_excludes", getenv("HOME"));
+    } else {
+        const char *home = getenv("HOME");
+        if (!home) {
+            fprintf(stderr, "cmc: warning: $HOME is not set, skipping .cmc_excludes\n");
+            return;
+        }
+        size_t home_len = strlen(home);
+        while (home_len > 0 && home[home_len - 1] == '/')
+            home_len--;
+        snprintf(path, sizeof(path), "%.*s/.config/cmc/.cmc_excludes",
+                 (int)home_len, home);
+    }
 
     FILE *f = fopen(path, "r");
     if (!f) {

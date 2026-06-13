@@ -24,7 +24,6 @@ cmc -R src/ -p -c   # whole project → clipboard in 0.1s
 - [Real-world workflows](#real-world-workflows)
 - [Full CLI reference](#full-cli-reference)
 - [Selection vs exclusion](#selection-vs-exclusion)
-- [cmcignore files](#cmcignore-files)
 - [Binary files](#binary-files)
 - [Clipboard backends](#clipboard-backends)
 - [Output format](#output-format)
@@ -189,7 +188,7 @@ cmc [OPTIONS] [PATHS...]
 ### Constraints
 
 - `-c` and `-o` cannot be used together (exit code 2).
-- `-s` has no effect unless `-R` is also used (non-recursive mode does not enter directories).
+- `-s` enables following symbolic links in all scan modes (without it, symlinks are skipped).
 - `-b` is rarely needed — `libmagic` detection is reliable for most binary formats.
 
 ---
@@ -412,11 +411,21 @@ Or run individual test suites:
 ./tests/test_basic.sh
 ./tests/test_recursive.sh
 ./tests/test_exclude.sh
+./tests/test_exclude_file.sh
+./tests/test_exclusion_selection.sh
 ./tests/test_error.sh
 ./tests/test_paths.sh
+./tests/test_file_output.sh
+./tests/test_mutex.sh
+./tests/test_separator.sh
+./tests/test_symlink.sh
+./tests/test_symlink_flat.sh
+./tests/test_trailing_slash.sh
+./tests/test_binary.sh
+./tests/test_clipboard.sh
 ```
 
-Tests are shell scripts that exercise cmc end-to-end and validate exit codes, output content, and edge cases (empty directories, missing files, recursive symlinks).
+Tests are shell scripts that exercise cmc end-to-end and validate exit codes, output content, and edge cases (empty directories, missing files, recursive symlinks, binary detection, clipboard integration, exclusion config).
 
 ---
 
