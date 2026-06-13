@@ -21,6 +21,7 @@ find . -name "*.deb" -not -path "./$REPO_DIR/*" -exec cp {} "$REPO_DIR/pool/$SEC
 for arch in amd64 arm64; do
     (cd "$REPO_DIR" && dpkg-scanpackages --arch "$arch" "pool/$SECTION" > "dists/$DIST/$SECTION/binary-$arch/Packages" 2>/dev/null)
     gzip -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages.gz"
+    xz -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages.xz"
 done
 
 # Copy public key before cd
