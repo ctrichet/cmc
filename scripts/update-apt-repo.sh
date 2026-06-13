@@ -23,6 +23,11 @@ for arch in amd64 arm64; do
     gzip -9 -c "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages" > "$REPO_DIR/dists/$DIST/$SECTION/binary-$arch/Packages.gz"
 done
 
+# Copy public key before cd
+if [ -f "cmc.gpg.asc" ]; then
+    cp cmc.gpg.asc "$REPO_DIR/"
+fi
+
 # Generate Release file
 cd "$REPO_DIR"
 cat > "dists/$DIST/Release" <<EOF
@@ -59,7 +64,3 @@ if [ -n "$GPG_PRIVATE_KEY" ]; then
         --clearsign -o "dists/$DIST/InRelease" "dists/$DIST/Release"
 fi
 
-# Copy public key
-if [ -f "cmc.gpg.asc" ]; then
-    cp cmc.gpg.asc "$REPO_DIR/"
-fi
