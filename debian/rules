@@ -6,7 +6,7 @@ export DH_VERBOSE = 1
 	dh $@
 
 override_dh_auto_build:
-	$(MAKE) CC=gcc CFLAGS="-std=c17 -Wall -Wextra -Werror -O2 -D_DEFAULT_SOURCE -DVERSION=\"$(VERSION)\"" LDFLAGS="-lmagic"
+	$(MAKE) CC=gcc CFLAGS="-std=c17 -Wall -Wextra -Werror -O2 -D_DEFAULT_SOURCE -DVERSION=\"$(shell dpkg-parsechangelog -S Version | cut -d- -f1)\"" LDFLAGS="-lmagic"
 
 override_dh_auto_install:
 	DESTDIR=$(CURDIR)/debian/cmc $(MAKE) install

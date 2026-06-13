@@ -5,7 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <errno.h>
 
 static int try_backend(buffer *b, const char *cmd, const char *const argv[])
 {

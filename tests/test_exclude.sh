@@ -4,7 +4,7 @@ set -e
 
 CMC=../cmc
 TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
+trap 'rm -rf "$TMPDIR" "$TMPDIR2"' EXIT
 
 echo "keep" > "$TMPDIR/keep.txt"
 echo "exclude" > "$TMPDIR/exclude.txt"
@@ -21,7 +21,6 @@ echo "PASS: test_exclude"
 
 # Test: multiple exclusion patterns with a single -e
 TMPDIR2=$(mktemp -d)
-trap 'rm -rf "$TMPDIR" "$TMPDIR2"' EXIT
 
 echo "alpha" > "$TMPDIR2/alpha.c"
 echo "beta" > "$TMPDIR2/beta.py"

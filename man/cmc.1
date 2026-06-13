@@ -1,0 +1,209 @@
+.TH CMC 1 "2026-06-13" "cmc 1.0.0" "User Commands"
+.SH NAME
+cmc \- Copy Multiple Contents \- collect file contents for LLM context
+.SH SYNOPSIS
+.B cmc
+[OPTIONS] [PATHS...]
+.SH DESCRIPTION
+.B cmc
+collects the contents of multiple files and outputs them to stdout, a file,
+or the system clipboard in one command. It is purpose-built for preparing
+source code and project context for Large Language Models (LLMs).
+
+If no selection patterns are given, all discovered files are included
+(subject to exclusions). Arguments are parsed left-to-right: before the
+first
+.B \-e
+or
+.B \-E
+option, positional arguments are selection patterns; after, they are
+exclusion patterns.
+
+.SH OPTIONS
+.TP
+.BR \-R ", " \-\-recursive
+Recursively scan directories.
+.TP
+.BR \-e ", " \-\-exclude " \fIpattern\fP"
+Exclude files matching a POSIX glob pattern. All subsequent positional
+arguments are treated as exclusion patterns.
+.TP
+.BR \-E ", " \-\-excludes " \fIpattern\fP"
+Exclude files matching a glob pattern. Also loads exclusion patterns from
+the user config file (see
+.BR FILES " below)."
+All subsequent positional arguments are treated as exclusion patterns.
+.TP
+.BR \-o ", " \-\-output " \fIfile\fP"
+Write output to
+.IR file .
+The file is overwritten if it exists.
+.TP
+.BR \-c ", " \-\-clipboard
+Copy output to the system clipboard. Uses
+.B wl\-copy
+on Wayland or
+.B xclip
+on X11. Detection is automatic.
+.TP
+.BR \-s ", " \-\-symlinks
+Follow symbolic links. Without this flag, symlinks are skipped in all
+scan modes (recursive, flat, and explicit paths).
+.TP
+.BR \-p ", " \-\-paths
+Prepend each file with its path in a
+.B "### FILE: \fIpath\fP ###"
+header. A leading
+.B ./
+is stripped from the path.
+.TP
+.BR \-b ", " \-\-binary
+Include binary files. By default, binary files are silently excluded
+using libmagic MIME-type detection. Use with caution \(em binary content
+will produce garbled output.
+.TP
+.BR \-h ", " \-\-help
+Display help and exit.
+.TP
+.BR \-v ", " \-\-version
+Show version information and exit.
+.PP
+Long options that require an argument accept both
+.B \-\-option=value
+and
+.B \-\-option value
+syntax.
+.PP
+The special argument
+.B \-\-
+ends option parsing; all subsequent arguments are treated as positional
+patterns (selection or exclusion depending on current mode).
+
+.SH ARGUMENTS
+.IP "Selection patterns" 4
+Before the first
+.BR \-e " or " \-E ,
+all positional arguments are POSIX glob or literal paths. Only files
+matching at least one pattern are included.
+.IP "Exclusion patterns" 4
+After
+.BR \-e " or " \-E ,
+all positional arguments are POSIX glob patterns. Matching files are
+skipped.
+.IP "No selection" 4
+If no selection pattern is given, all discovered files are included
+(except those matching exclusions or binary files).
+
+.SH EXIT CODES
+.TP
+0
+Success.
+.TP
+1
+General error (I/O failure, memory allocation failure).
+.TP
+2
+Invalid command line arguments, or
+.B \-c
+and
+.B \-o
+used together.
+.TP
+3
+Output file error (cannot open or write to output file).
+.TP
+4
+Clipboard tool not found (neither
+.B wl\-copy
+nor
+.B xclip
+available).
+.TP
+5
+libmagic initialization error.
+
+.SH ENVIRONMENT
+.TP
+.B XDG_CONFIG_HOME
+If set and non-empty, the user exclusion config file is loaded from
+.IR $XDG_CONFIG_HOME/cmc/.cmc_excludes .
+.TP
+.B HOME
+Used as fallback when
+.B XDG_CONFIG_HOME
+is not set: the config file is loaded from
+.IR $HOME/.config/cmc/.cmc_excludes .
+
+.SH FILES
+.TP
+.I $XDG_CONFIG_HOME/cmc/.cmc_excludes
+or
+.I $HOME/.config/cmc/.cmc_excludes
+User exclusion patterns. One glob pattern per line; lines starting with
+.B #
+are comments. Loaded automatically when
+.B \-E
+or
+.B \-\-excludes
+is used. Created automatically by
+.BR "make install" .
+A sample file is provided in
+.IR /usr/share/doc/cmc/cmc_excludes.example .
+
+.SH EXAMPLES
+.TP
+Basic usage
+Print a single file to stdout:
+.RS
+.PP
+cmc main.c
+.RE
+.TP
+Multiple files
+Concatenate files in lexicographic order:
+.RS
+.PP
+cmc main.c helper.c config.h
+.RE
+.TP
+Recursive scan with exclusions
+Scan a project excluding build artifacts:
+.RS
+.PP
+cmc \-R . \-e "*.o" "build/*" __pycache__/*
+.RE
+.TP
+Clipboard with path labels
+Copy entire project to clipboard with file headers:
+.RS
+.PP
+cmc \-R src/ \-p \-c
+.RE
+.TP
+File output with config exclusions
+Write to a file, loading patterns from user config:
+.RS
+.PP
+cmc \-R . \-E "*.md" \-p \-o context.txt
+.RE
+.TP
+Pipe to LLM
+Send source code to an LLM CLI tool:
+.RS
+.PP
+cmc \-R src/ \-p | llm \-s "Explain the architecture"
+.RE
+
+.SH BUGS
+Report bugs at
+.UR https://github.com/\:ctrichet/\:cmc/\:issues
+https://github.com/ctrichet/cmc/issues
+.UE .
+
+.SH AUTHOR
+cmc contributors.
+
+.SH SEE ALSO
+.BR cat (1),
+.BR xclip (1),
+.BR wl\-copy (1)

@@ -49,7 +49,7 @@ cmc -R src/ -p -c   # whole project → clipboard in 0.1s
 ### From source
 
 ```bash
-git clone https://github.com/<USER>/cmc.git
+git clone https://github.com/ctrichet/cmc.git
 cd cmc
 make
 sudo make install
@@ -103,7 +103,7 @@ Concatenates the three files in lexicographic order.
 cmc -R src/ -p -c
 ```
 
-Recursively collects all files under `src/`, prepends each with its path header (as given, with a leading `./` stripped), and copies everything to the clipboard.
+Recursively collects all files under `src/`, prepends each with its path header (with a leading `./` stripped), and copies everything to the clipboard.
 
 ### Directory with exclusions
 
@@ -180,10 +180,11 @@ cmc [OPTIONS] [PATHS...]
 | `-o`  | `--output FILE`       | Write output to FILE                |
 | `-c`  | `--clipboard`         | Copy output to system clipboard     |
 | `-s`  | `--symlinks`          | Follow symbolic links               |
-| `-p`  | `--paths`             | Prepend each file with its path     |
+| `-p`  | `--paths`             | Prepend each file with its path (with a leading `./` stripped) |
 | `-b`  | `--binary`            | Include binary files                |
 | `-h`  | `--help`              | Display help and exit               |
 | `-v`  | `--version`           | Show version and exit               |
+|       | `--`                  | End of option parsing               |
 
 ### Constraints
 
@@ -335,7 +336,7 @@ The `### FILE: <path> ###` header makes it easy for LLMs to associate code with 
 
 ### Output order
 
-Files are emitted in **lexicographical ascending order** of their relative paths.
+Files are emitted in **lexicographical ascending order** of their paths as given by the user or scan result.
 
 ```
 a/file.txt
@@ -423,6 +424,10 @@ Or run individual test suites:
 ./tests/test_trailing_slash.sh
 ./tests/test_binary.sh
 ./tests/test_clipboard.sh
+./tests/test_symlink_explicit.sh
+./tests/test_exclude_absolute_root.sh
+./tests/test_long_opts.sh
+./tests/test_version.sh
 ```
 
 Tests are shell scripts that exercise cmc end-to-end and validate exit codes, output content, and edge cases (empty directories, missing files, recursive symlinks, binary detection, clipboard integration, exclusion config).
@@ -513,7 +518,7 @@ You can, but it requires a chain of tools with careful handling of delimiters, r
 
 ### "Does cmc follow symlinks?"
 
-Only with `-s` / `--symlinks`. Without it, symlinks are skipped.
+Only with `-s` / `--symlinks`. Without it, symlinks are skipped in all scan modes (recursive, flat, and explicit paths).
 
 ### "What encoding does cmc assume?"
 
@@ -545,7 +550,7 @@ Currently **Linux only**. The code uses POSIX APIs (`nftw`, `getopt_long`, `fork
 
 Contributions are welcome!
 
-- [Open an issue](https://github.com/<USER>/cmc/issues) for bugs or feature requests
+- [Open an issue](https://github.com/ctrichet/cmc/issues) for bugs or feature requests
 - Submit a pull request with a clear description
 - Ensure all tests pass: `make check`
 - Follow existing code style:
@@ -558,7 +563,7 @@ Contributions are welcome!
 
 ## License
 
-Copyright (C) 2024-2025  cmc contributors
+Copyright (C) 2026  cmc contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

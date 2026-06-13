@@ -20,7 +20,10 @@ int write_output(buffer *out, config *cfg)
             fclose(f);
             return EXIT_OUTPUT;
         }
-        fclose(f);
+        if (fclose(f) != 0) {
+            fprintf(stderr, "cmc: warning: error closing '%s': %s\n",
+                    cfg->output_file, strerror(errno));
+        }
     } else {
         if (fwrite(out->data, 1, out->len, stdout) != out->len) {
             fprintf(stderr, "cmc: error writing to stdout: %s\n",

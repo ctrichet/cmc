@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE 500
+#define _XOPEN_SOURCE 700
 
 #include "scan.h"
 #include <ftw.h>
@@ -116,7 +116,8 @@ static int scan_flat(path_list *pl, const char *path, bool follow_symlinks)
             size_t needed = path_len + 1 + strlen(entry->d_name) + 1;
             char *full = malloc(needed);
             if (!full) {
-                closedir(d);
+                if (closedir(d) != 0)
+                    fprintf(stderr, "cmc: warning: error closing directory\n");
                 return -1;
             }
             snprintf(full, needed, "%s/%s", path, entry->d_name);
@@ -138,13 +139,16 @@ static int scan_flat(path_list *pl, const char *path, bool follow_symlinks)
             }
             if (S_ISREG(st2.st_mode)) {
                 if (path_list_add(pl, full) != 0) {
-                    closedir(d);
+                    if (closedir(d) != 0)
+                        fprintf(stderr, "cmc: warning: error closing directory\n");
                     return -1;
                 }
             }
             free(full);
         }
-        closedir(d);
+        if (closedir(d) != 0) {
+            fprintf(stderr, "cmc: warning: error closing directory\n");
+        }
         return 0;
     }
 

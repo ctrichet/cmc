@@ -1,5 +1,6 @@
 CC      ?= gcc
 VERSION ?= 1.0.0
+MANDIR  ?= /usr/share/man
 CFLAGS  ?= -std=c17 -Wall -Wextra -Werror -O2 -D_DEFAULT_SOURCE -DVERSION=\"$(VERSION)\"
 LDFLAGS ?= -lmagic
 SRCDIR  = src
@@ -12,7 +13,7 @@ DEB_HOST_MULTIARCH := $(shell dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null
 #   make MAGIC_DIR=/tmp/libmagic-dev/usr
 ifdef MAGIC_DIR
 CFLAGS  += -I$(MAGIC_DIR)/include
-LDFLAGS  = -L$(MAGIC_DIR)/lib/$(DEB_HOST_MULTIARCH) -lmagic -Wl,-rpath,$(MAGIC_DIR)/lib/$(DEB_HOST_MULTIARCH)
+LDFLAGS ?= -L$(MAGIC_DIR)/lib/$(DEB_HOST_MULTIARCH) -lmagic -Wl,-rpath,$(MAGIC_DIR)/lib/$(DEB_HOST_MULTIARCH)
 endif
 
 SRCS = $(SRCDIR)/main.c $(SRCDIR)/args.c $(SRCDIR)/scan.c \
@@ -41,6 +42,8 @@ install: $(TARGET)
 	install -m 755 $(TARGET) $(DESTDIR)/usr/bin/cmc
 	install -d $(DESTDIR)/usr/share/doc/cmc
 	install -m 644 .cmc_excludes.example $(DESTDIR)/usr/share/doc/cmc/cmc_excludes.example
+	install -d $(DESTDIR)$(MANDIR)/man1
+	install -m 644 man/cmc.1 $(DESTDIR)$(MANDIR)/man1/cmc.1
 	HOME_DIR=$${SUDO_USER:+$$(getent passwd "$$SUDO_USER" | cut -d: -f6)}; \
 	if [ -z "$$HOME_DIR" ]; then HOME_DIR="$$HOME"; fi; \
 	if [ -n "$$HOME_DIR" ]; then \

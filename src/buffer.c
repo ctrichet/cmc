@@ -18,6 +18,7 @@ int buf_init(buffer *b)
 int buf_append(buffer *b, const char *data, size_t len)
 {
     if (len == 0) return 0;
+    if (b->cap == 0) return -1;
     while (b->len + len + 1 > b->cap) {
         if (b->cap > (size_t)-1 / 2) return -1;
         size_t new_cap = b->cap * 2;

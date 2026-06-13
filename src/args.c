@@ -1,14 +1,13 @@
-#include "args.h"
-#include "exitcodes.h"
-#include <stdio.h>
-
 #ifndef VERSION
 #define VERSION "unknown"
 #endif
+
+#include "args.h"
+#include "exitcodes.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/stat.h>
 
 #define PAT_CAP 64
 
@@ -38,10 +37,11 @@ static void print_help(void)
     printf("  -o, --output FILE       Write output to FILE\n");
     printf("  -c, --clipboard         Copy output to system clipboard\n");
     printf("  -s, --symlinks          Follow symbolic links\n");
-    printf("  -p, --paths             Prepend each file with its relative path\n");
+    printf("  -p, --paths             Prepend each file with its path (with a leading ./ stripped)\n");
     printf("  -b, --binary            Include binary files\n");
     printf("  -h, --help              Display this help\n");
     printf("  -v, --version           Display version information\n");
+    printf("  --                      End of option parsing\n");
 }
 
 static int handle_short_opts(const char *s, int *i, int argc, const char *argv[],
@@ -254,7 +254,7 @@ int parse_args(int argc, char *argv[], config *cfg)
                         cfg->output_file = argv[i];
                     } else {
                         fprintf(stderr, "cmc: option '--output' requires an argument\n");
-                        return 2;
+                        return EXIT_BADARGS;
                     }
                 } else if (strcmp(opt, "clipboard") == 0) {
                     cfg->clipboard = true;
@@ -273,7 +273,7 @@ int parse_args(int argc, char *argv[], config *cfg)
                 } else {
                     fprintf(stderr, "cmc: unknown option '%s'\n", arg);
                     fprintf(stderr, "Try 'cmc --help' for more information.\n");
-                    return 2;
+                    return EXIT_BADARGS;
                 }
             } else {
                 int ret = handle_short_opts(arg, &i, argc, (const char **)argv, cfg,
