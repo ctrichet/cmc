@@ -5,10 +5,10 @@ Maintainer: cmc contributors
 Depends: libmagic1 (>= 1:5.0)
 Recommends: xclip, wl-clipboard
 Filename: pool/main/cmc_1.0.5_arm64.deb
-Size: 13458
-MD5sum: efe199cb50a25b94d1ea2413c62e9e32
-SHA1: 6c343ab59554f131d51533343378429d7f845b18
-SHA256: f8ec2d288d2528a1570efab5bf4ffd0608df928ce56180630b36a29b471e13e7
+Size: 13454
+MD5sum: 97ed8558b655d22abcc77173ad62d3f3
+SHA1: cd848fca0f4cef63acda06a99e6cd41353b981f6
+SHA256: 4c7fec1a0b5762a91df8af08dc5e71725a5411c8bd467cb370416aa5f06c53ca
 Section: utils
 Priority: optional
 Homepage: https://github.com/ctrichet/cmc

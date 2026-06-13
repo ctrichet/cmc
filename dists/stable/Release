@@ -2,37 +2,37 @@ Origin: cmc
 Label: cmc APT Repository
 Suite: stable
 Codename: stable
-Date: Sat, 13 Jun 2026 22:00:04 +0000
+Date: Sat, 13 Jun 2026 22:11:21 +0000
 Architectures: amd64 arm64 all
 Components: main
 Description: cmc - Copy Multiple Contents
 MD5sum:
  d41d8cd98f00b204e9800998ecf8427e 0 main/binary-all/Packages
- 0c8d04c1cd9b507ee9a627a094c73d52 29 main/binary-all/Packages.gz
+ a631321264fe45fb2012694e26194815 29 main/binary-all/Packages.gz
  8dc5aea5b03dff8595f096f9e368e888 32 main/binary-all/Packages.xz
- 093834c8d03a7ac71d838d71669cb7b3 746 main/binary-amd64/Packages
- 32a5fae2fb2540489fc873cf5083f7b8 528 main/binary-amd64/Packages.gz
- 5fa9c86778f95ed558bbbb437ff78515 608 main/binary-amd64/Packages.xz
- c945fae27d5bbe4b0f1145f4712aba19 746 main/binary-arm64/Packages
- 24616ba9fab1db977cd22e53d7d642bb 530 main/binary-arm64/Packages.gz
- dde831c6a2a4df9af3526366bb3622e0 604 main/binary-arm64/Packages.xz
+ 4b5032f6b03707a01458c57046183316 746 main/binary-amd64/Packages
+ 43f334f85fdb6e408f4213edf47a0419 531 main/binary-amd64/Packages.gz
+ 61c8727b9f89a2a818a725cbf00623fd 608 main/binary-amd64/Packages.xz
+ e05312916511e8ae7a10072ba9fbbcf2 746 main/binary-arm64/Packages
+ 86997d8875831c44fcf0603e1fbfc5a2 529 main/binary-arm64/Packages.gz
+ 2f5258d2469f6945de9bbe7588804dda 608 main/binary-arm64/Packages.xz
 SHA1:
  da39a3ee5e6b4b0d3255bfef95601890afd80709 0 main/binary-all/Packages
- 953eea1cb71c0e9d216eb404019450803f19cf3a 29 main/binary-all/Packages.gz
+ caa99c600ca9a7f08799d65477a28fb2734ac6bd 29 main/binary-all/Packages.gz
  9746882f4236fa1c3a8f86be2f1d9c46680c0b10 32 main/binary-all/Packages.xz
- 492c1ffec207e2e6ff91cd4f8d6c7bad2ff4e265 746 main/binary-amd64/Packages
- fb76e86d2d1e47e1d0961b824094cf8c67259275 528 main/binary-amd64/Packages.gz
- 624660600253097c730838c8b58f480c434e4931 608 main/binary-amd64/Packages.xz
- 05a31e37d2bdb9288758cf318669b7b88bc269d6 746 main/binary-arm64/Packages
- c9b9bbc7e836aa9a1d8fe45a8dc24c4ade4ed0ff 530 main/binary-arm64/Packages.gz
- dc020faf58999e77d44b24b32e58b5d7c4a5b226 604 main/binary-arm64/Packages.xz
+ 55cbbb84fd283370551f7ca99c681331064d7392 746 main/binary-amd64/Packages
+ 0d985873ca3e2e6be491a19a243bf39f8a2257ee 531 main/binary-amd64/Packages.gz
+ 2a43277cca47e663cadd48520ecb03d526e2386a 608 main/binary-amd64/Packages.xz
+ a769e2f9c025db83daa0784fb0182e1a84e6293c 746 main/binary-arm64/Packages
+ 9b23876f9810427a264ea60646e50c46e102c088 529 main/binary-arm64/Packages.gz
+ 60f0490534e8f10b92473870ed3fc2d2156b85d3 608 main/binary-arm64/Packages.xz
 SHA256:
  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 0 main/binary-all/Packages
- 189d3f5a70b2efc569d4d0c09d0a826a72e41cdb95d12dcb60c97e90481bf173 29 main/binary-all/Packages.gz
+ 5f37b59f14310bbeec920181744faa3dd3e17ad463b06e2e9a783db10b94f172 29 main/binary-all/Packages.gz
  0040f94d11d0039505328a90b2ff48968db873e9e7967307631bf40ef5679275 32 main/binary-all/Packages.xz
- 3b930724e3d6b045cf4bcd32958b33cc1a8ffe8e88e74b6253e8f29c01bb4ba3 746 main/binary-amd64/Packages
- d251b8440f03e007d1d4c8b896bd07a80bf34237fd1f350855c1adf57cb3e8a8 528 main/binary-amd64/Packages.gz
- c64a1ecfd2b15718ef90fd4ffddb749651df7ddec4ec5ad50de62c12746769eb 608 main/binary-amd64/Packages.xz
- 3b0e45f6a41251b4049912e4b79ddfaa469e9e706d90a93317cb88145de7c3d5 746 main/binary-arm64/Packages
- ec42da22fcaba0d56921c0d6f905a9322c28201621540f4ca3f6f4214ce94e75 530 main/binary-arm64/Packages.gz
- a51da4012a648c82dbc204a80afb4440db6d01e5693ab1ec51843007ffad0173 604 main/binary-arm64/Packages.xz
+ 429512c8a6202053513d153a4469411647bbd92faec147177c22aee3f983eefa 746 main/binary-amd64/Packages
+ b109812fc51c521e0c4dca57b0114c590c0ce9b7ecaa7747125d24b02b2237af 531 main/binary-amd64/Packages.gz
+ 63225f8338f9f929f5ab6fcc515266ae4364e5b79d24cee57d1c097e5e338f33 608 main/binary-amd64/Packages.xz
+ 6f6b8a93bc3e3709083fe1a4c98b87f6e3594cc368a5e0d83cdb9486e0c711fe 746 main/binary-arm64/Packages
+ 8ea475b8c47cb8aeb0b066ddbe9483a31c703fe3e5ded749203d307c2e53f55d 529 main/binary-arm64/Packages.gz
+ 49b8f6b53d221915d81a07c09b6a31aea9894308b49e3bbbbac133b18f259d3c 608 main/binary-arm64/Packages.xz
