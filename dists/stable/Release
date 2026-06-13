@@ -2,22 +2,22 @@ Origin: cmc
 Label: cmc APT Repository
 Suite: stable
 Codename: stable
-Date: Sat, 13 Jun 2026 20:50:03 +0000
+Date: Sat, 13 Jun 2026 21:29:59 +0000
 Architectures: amd64 arm64
 Components: main
 Description: cmc - Copy Multiple Contents
 MD5sum:
- a4be34f78369e852988c395a70aee334 746 dists/stable/main/binary-amd64/Packages
- 0c4cfcd33d688f6a4bd7ce1ee2b6ef1b 529 dists/stable/main/binary-amd64/Packages.gz
- fcff66c6df2ae985b869bf056edef5fd 746 dists/stable/main/binary-arm64/Packages
- a8592f3f36aafa5832f1401127788233 528 dists/stable/main/binary-arm64/Packages.gz
+ 975898f5af63b6c38df9516db8235543 746 dists/stable/main/binary-amd64/Packages
+ 0e0f4e6aa46dbf31b84c215f3d114ddb 527 dists/stable/main/binary-amd64/Packages.gz
+ 7d29976001ad4c4dac3de9bc79889613 746 dists/stable/main/binary-arm64/Packages
+ 418db7839667b4ab2c56773446afda9a 529 dists/stable/main/binary-arm64/Packages.gz
 SHA1:
- 4fb470434dcd78560af224252c36192e08e54caf 746 dists/stable/main/binary-amd64/Packages
- 1c9fed89976cd44e43812c1630287a1c6a0dd1e5 529 dists/stable/main/binary-amd64/Packages.gz
- 3cc99434f987005c6c06a8e74309b4aae23dba2e 746 dists/stable/main/binary-arm64/Packages
- 6c433f0eb272befbbf8c699aa8dd79fe596ddc78 528 dists/stable/main/binary-arm64/Packages.gz
+ 0a0fe89196afa177684c756582d4c4c53e75f0b7 746 dists/stable/main/binary-amd64/Packages
+ 4dc6b077c7a7fa4f670f4e03fd08a3650328495e 527 dists/stable/main/binary-amd64/Packages.gz
+ f22cd0e95593440d858d2b20a7249c25aa19eca0 746 dists/stable/main/binary-arm64/Packages
+ 7aa8123af5e78f193fa96696cfe0a3545f84b3dd 529 dists/stable/main/binary-arm64/Packages.gz
 SHA256:
- 71132c990853cd40313c5d40ceebefde1b2f3ddad4dc3e7e9bd0367e9c291158 746 dists/stable/main/binary-amd64/Packages
- cacf5149acc554d4a1f659bbd663bdf28da2c7477860ea89910fdb4d0b50a409 529 dists/stable/main/binary-amd64/Packages.gz
- 9871c8d3b3a96f4f5c19e36424d857681a182ba62c16b74822a03e75bac83123 746 dists/stable/main/binary-arm64/Packages
- d7292ddfe8870ed45e09fb839ee86fd78e2c11fdc6efa3020b05cb22ef7832e3 528 dists/stable/main/binary-arm64/Packages.gz
+ d745a7819b7853a132fa07f36872b684b9f3dc3bcf5c5852f00b545286f21925 746 dists/stable/main/binary-amd64/Packages
+ a371f04f32b4b549cf7041300c2d320d708fc6361701c92265784aa6ca131c69 527 dists/stable/main/binary-amd64/Packages.gz
+ 612ff62da4e287f163385dec2d6678d67b0066a85386b439aeab8b6ae5128838 746 dists/stable/main/binary-arm64/Packages
+ 7273e4074e5e0007b5c792fe110bacc68b17a0192b7f3f31f68901291c132b61 529 dists/stable/main/binary-arm64/Packages.gz
