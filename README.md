@@ -1,3 +1,4 @@
+![Banner](assets/banner.png)
 # cmc - Copy Multiple Contents
 
 cmc is a command-line utility that collects the contents of multiple files and
