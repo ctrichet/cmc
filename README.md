@@ -64,10 +64,23 @@ make MAGIC_DIR=/tmp/libmagic-dev/usr
 sudo make install
 ```
 
-### From Debian package
+### From APT repository (recommended)
 
 ```bash
-sudo dpkg -i cmc_1.0-1_amd64.deb
+# Import the GPG key
+curl -fsSL https://ctrichet.github.io/cmc/cmc.gpg.asc | sudo gpg --dearmor -o /usr/share/keyrings/cmc.gpg
+
+# Add the repository
+echo "deb [signed-by=/usr/share/keyrings/cmc.gpg] https://ctrichet.github.io/cmc/ stable main" | sudo tee /etc/apt/sources.list.d/cmc.list
+
+# Install
+sudo apt update && sudo apt install cmc
+```
+
+### From a Debian package manually
+
+```bash
+sudo dpkg -i cmc_*.deb
 sudo apt install -f
 ```
 
@@ -442,6 +455,27 @@ dpkg-buildpackage -b -us -uc
 ```
 
 The `.deb` is generated in the parent directory.
+
+---
+
+## Releasing
+
+Releases are automated via GitHub Actions. To create a new release:
+
+```bash
+# 1. Merge develop into main
+git checkout main
+git merge develop
+
+# 2. Tag the release
+git tag v1.0.0
+
+# 3. Push — the CI builds .deb packages, creates a GitHub Release,
+#    and publishes the APT repository to GitHub Pages
+git push origin main --tags
+```
+
+The CI workflow builds `.deb` packages for `amd64` and `arm64`, attaches them to the GitHub Release, generates checksums, and updates the APT repository on `gh-pages`.
 
 ---
 

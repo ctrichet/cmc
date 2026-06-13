@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build .deb (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libmagic-dev
+
+      - name: Build cmc
+        run: make clean && make
+
+      - name: Package .deb
+        run: |
+          chmod +x scripts/build-deb.sh
+          scripts/build-deb.sh "${GITHUB_REF_NAME#v}" "${{ matrix.arch }}" .
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ matrix.arch }}
+          path: cmc_*.deb
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all .deb artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deb-*
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: sha256sum cmc_*.deb > SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: cmc ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          files: |
+            cmc_*.deb
+            SHA256SUMS
+          fail_on_unmatched_files: false
+
+  apt-repo:
+    name: Update APT Repository
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all .deb artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deb-*
+          merge-multiple: true
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Update APT repository
+        run: |
+          chmod +x scripts/update-apt-repo.sh
+          GPG_PRIVATE_KEY="${{ secrets.GPG_PRIVATE_KEY }}" \
+          GPG_PASSPHRASE="${{ secrets.GPG_PASSPHRASE }}" \
+          scripts/update-apt-repo.sh gh-pages
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: gh-pages
+          publish_branch: gh-pages
+          force_orphan: false
+          keep_files: true
