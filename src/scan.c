@@ -12,7 +12,7 @@
 
 #define PATH_CAP 1024
 
-static _Thread_local path_list *g_pl;
+static path_list *g_pl;
 
 int path_list_init(path_list *pl)
 {
@@ -111,7 +111,7 @@ static int scan_flat(path_list *pl, const char *path, bool follow_symlinks)
         struct dirent *entry;
         size_t path_len = strlen(path);
         while ((entry = readdir(d)) != NULL) {
-            if (entry->d_name[0] == '.')
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                 continue;
             size_t needed = path_len + 1 + strlen(entry->d_name) + 1;
             char *full = malloc(needed);
@@ -180,12 +180,15 @@ int scan_paths(config *cfg, path_list *pl)
         }
 
         if (S_ISREG(st.st_mode)) {
-            path_list_add(pl, cfg->selection_patterns[i]);
+            if (path_list_add(pl, cfg->selection_patterns[i]) != 0)
+                had_error = 1;
         } else if (S_ISDIR(st.st_mode)) {
             if (cfg->recursive) {
-                scan_recursive(pl, cfg->selection_patterns[i], cfg->follow_symlinks);
+                if (scan_recursive(pl, cfg->selection_patterns[i], cfg->follow_symlinks) != 0)
+                    had_error = 1;
             } else {
-                scan_flat(pl, cfg->selection_patterns[i], cfg->follow_symlinks);
+                if (scan_flat(pl, cfg->selection_patterns[i], cfg->follow_symlinks) != 0)
+                    had_error = 1;
             }
         } else {
             fprintf(stderr, "cmc: warning: '%s' is not a regular file or directory\n",

@@ -1,4 +1,5 @@
 #include "clipboard.h"
+#include "exitcodes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +7,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-static int try_backend(buffer *b, const char *cmd, char *const argv[])
+static int try_backend(buffer *b, const char *cmd, const char *const argv[])
 {
     int pipefd[2];
     if (pipe(pipefd) != 0) return -1;
@@ -22,7 +23,7 @@ static int try_backend(buffer *b, const char *cmd, char *const argv[])
         close(pipefd[1]);
         dup2(pipefd[0], STDIN_FILENO);
         close(pipefd[0]);
-        execvp(cmd, argv);
+        execvp(cmd, (char *const *)argv);
         _exit(127);
     }
 
@@ -52,15 +53,15 @@ int copy_to_clipboard(buffer *b)
     const char *wayland_display = getenv("WAYLAND_DISPLAY");
 
     if (wayland_display && wayland_display[0]) {
-        char *const wl_argv[] = {"wl-copy", NULL};
+        const char *const wl_argv[] = {"wl-copy", NULL};
         if (try_backend(b, "wl-copy", wl_argv) == 0)
             return 0;
     }
 
-    char *const xclip_argv[] = {"xclip", "-selection", "clipboard", NULL};
+    const char *const xclip_argv[] = {"xclip", "-selection", "clipboard", NULL};
     if (try_backend(b, "xclip", xclip_argv) == 0)
         return 0;
 
     fprintf(stderr, "cmc: no clipboard backend available (tried wl-copy, xclip)\n");
-    return 4;
+    return EXIT_CLIPBOARD;
 }

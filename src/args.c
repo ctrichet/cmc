@@ -1,4 +1,5 @@
 #include "args.h"
+#include "exitcodes.h"
 #include <stdio.h>
 
 #ifndef VERSION
@@ -117,7 +118,7 @@ static int handle_short_opts(const char *s, int *i, int argc, const char *argv[]
     return 0;
 }
 
-static void load_cmc_excludes(config *cfg)
+static void load_cmc_excludes(config *cfg, size_t *exc_cap)
 {
     const char *xdg = getenv("XDG_CONFIG_HOME");
     char path[4096];
@@ -142,7 +143,6 @@ static void load_cmc_excludes(config *cfg)
         return;
     }
     char line[4096];
-    size_t exc_cap = 0;
     while (fgets(line, sizeof(line), f)) {
         size_t len = strlen(line);
         while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
@@ -151,7 +151,7 @@ static void load_cmc_excludes(config *cfg)
             continue;
         if (add_pattern(&cfg->exclusion_patterns,
                         &cfg->n_exclusion_patterns,
-                        &exc_cap, line) != 0) {
+                        exc_cap, line) != 0) {
             fprintf(stderr, "cmc: memory allocation failed\n");
             break;
         }
@@ -179,14 +179,14 @@ int parse_args(int argc, char *argv[], config *cfg)
                                     &cfg->n_exclusion_patterns,
                                     &exc_cap, argv[i]) != 0) {
                         fprintf(stderr, "cmc: memory allocation failed\n");
-                        return 1;
+                        return EXIT_ERROR;
                     }
                 } else {
                     if (add_pattern(&cfg->selection_patterns,
                                     &cfg->n_selection_patterns,
                                     &sel_cap, argv[i]) != 0) {
                         fprintf(stderr, "cmc: memory allocation failed\n");
-                        return 1;
+                        return EXIT_ERROR;
                     }
                 }
                 i++;
@@ -206,7 +206,7 @@ int parse_args(int argc, char *argv[], config *cfg)
                                     &cfg->n_exclusion_patterns,
                                     &exc_cap, opt + 8) != 0) {
                         fprintf(stderr, "cmc: memory allocation failed\n");
-                        return 1;
+                        return EXIT_ERROR;
                     }
                 } else if (strcmp(opt, "exclude") == 0) {
                     exclude_mode = true;
@@ -216,11 +216,11 @@ int parse_args(int argc, char *argv[], config *cfg)
                                         &cfg->n_exclusion_patterns,
                                         &exc_cap, argv[i]) != 0) {
                             fprintf(stderr, "cmc: memory allocation failed\n");
-                            return 1;
+                            return EXIT_ERROR;
                         }
                     } else {
                         fprintf(stderr, "cmc: option '--exclude' requires an argument\n");
-                        return 2;
+                        return EXIT_BADARGS;
                     }
                 } else if (strncmp(opt, "excludes=", 9) == 0) {
                     cfg->exclude_flag = true;
@@ -229,7 +229,7 @@ int parse_args(int argc, char *argv[], config *cfg)
                                     &cfg->n_exclusion_patterns,
                                     &exc_cap, opt + 9) != 0) {
                         fprintf(stderr, "cmc: memory allocation failed\n");
-                        return 1;
+                        return EXIT_ERROR;
                     }
                 } else if (strcmp(opt, "excludes") == 0) {
                     cfg->exclude_flag = true;
@@ -240,11 +240,11 @@ int parse_args(int argc, char *argv[], config *cfg)
                                         &cfg->n_exclusion_patterns,
                                         &exc_cap, argv[i]) != 0) {
                             fprintf(stderr, "cmc: memory allocation failed\n");
-                            return 1;
+                            return EXIT_ERROR;
                         }
                     } else {
                         fprintf(stderr, "cmc: option '--excludes' requires an argument\n");
-                        return 2;
+                        return EXIT_BADARGS;
                     }
                 } else if (strncmp(opt, "output=", 7) == 0) {
                     cfg->output_file = opt + 7;
@@ -280,9 +280,9 @@ int parse_args(int argc, char *argv[], config *cfg)
                                             &exclude_mode, &exc_cap);
                 if (ret == -1) {
                     fprintf(stderr, "cmc: memory allocation failed\n");
-                    return 1;
+                    return EXIT_ERROR;
                 } else if (ret == -2) {
-                    return 2;
+                    return EXIT_BADARGS;
                 }
             }
         } else {
@@ -291,21 +291,21 @@ int parse_args(int argc, char *argv[], config *cfg)
                                 &cfg->n_exclusion_patterns,
                                 &exc_cap, arg) != 0) {
                     fprintf(stderr, "cmc: memory allocation failed\n");
-                    return 1;
+                    return EXIT_ERROR;
                 }
             } else {
                 if (add_pattern(&cfg->selection_patterns,
                                 &cfg->n_selection_patterns,
                                 &sel_cap, arg) != 0) {
                     fprintf(stderr, "cmc: memory allocation failed\n");
-                    return 1;
+                    return EXIT_ERROR;
                 }
             }
         }
     }
 
     if (cfg->exclude_flag)
-        load_cmc_excludes(cfg);
+        load_cmc_excludes(cfg, &exc_cap);
 
     return 0;
 }
@@ -318,5 +318,4 @@ void free_config(config *cfg)
     for (size_t i = 0; i < cfg->n_exclusion_patterns; i++)
         free(cfg->exclusion_patterns[i]);
     free(cfg->exclusion_patterns);
-    memset(cfg, 0, sizeof(*cfg));
 }

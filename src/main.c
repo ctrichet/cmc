@@ -4,17 +4,12 @@
 #include "output.h"
 #include "clipboard.h"
 #include "buffer.h"
+#include "exitcodes.h"
+#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
-static const char *strip_dot_slash(const char *path)
-{
-    while (path[0] == '.' && path[1] == '/')
-        path += 2;
-    return path;
-}
 
 int main(int argc, char *argv[])
 {
@@ -28,14 +23,14 @@ int main(int argc, char *argv[])
     magic_ctx mctx;
     if (magic_ctx_init(&mctx) != 0) {
         free_config(&cfg);
-        return 5;
+        return EXIT_MAGIC;
     }
 
     if (cfg.clipboard && cfg.output_file) {
         fprintf(stderr, "cmc: -c and -o cannot be used together\n");
         magic_ctx_free(&mctx);
         free_config(&cfg);
-        return 2;
+        return EXIT_BADARGS;
     }
 
     path_list pl;
@@ -50,7 +45,7 @@ int main(int argc, char *argv[])
         path_list_free(&pl);
         magic_ctx_free(&mctx);
         free_config(&cfg);
-        return 1;
+        return EXIT_ERROR;
     }
 
     int include_error = 0;
@@ -89,7 +84,10 @@ int main(int argc, char *argv[])
             fprintf(stderr, "cmc: warning: error reading '%s': %s\n",
                     path, strerror(errno));
         }
-        fclose(f);
+        if (fclose(f) != 0) {
+            fprintf(stderr, "cmc: warning: error closing '%s': %s\n",
+                    path, strerror(errno));
+        }
 
         if (cfg.path_mode)
             buf_append_str(&out, "\n");
@@ -107,7 +105,8 @@ cleanup:
     magic_ctx_free(&mctx);
     free_config(&cfg);
 
-    if (include_error) return 1;
-    if (scan_err) return 1;
-    return ret;
+    if (include_error) return EXIT_ERROR;
+    if (ret) return ret;
+    if (scan_err) return EXIT_ERROR;
+    return EXIT_OK;
 }

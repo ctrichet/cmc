@@ -1,7 +1,7 @@
-CC      = gcc
+CC      ?= gcc
 VERSION ?= 1.0.0
-CFLAGS  = -std=c17 -Wall -Wextra -Werror -O2 -D_DEFAULT_SOURCE -DVERSION=\"$(VERSION)\"
-LDFLAGS = -lmagic
+CFLAGS  ?= -std=c17 -Wall -Wextra -Werror -O2 -D_DEFAULT_SOURCE -DVERSION=\"$(VERSION)\"
+LDFLAGS ?= -lmagic
 SRCDIR  = src
 OBJDIR  = obj
 TARGET  = cmc

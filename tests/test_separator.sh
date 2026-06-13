@@ -11,5 +11,6 @@ echo "normal" > "$TMPDIR/normal.txt"
 
 output=$("$CMC" -- "$TMPDIR/-v" "$TMPDIR/normal.txt" 2>/dev/null)
 echo "$output" | grep -q "normal" || { echo "FAIL: normal file should be included"; exit 1; }
+echo "$output" | grep -q "dash file" || { echo "FAIL: -v file should be included via -- separator"; exit 1; }
 
 echo "PASS: test_separator"

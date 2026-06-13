@@ -103,7 +103,7 @@ Concatenates the three files in lexicographic order.
 cmc -R src/ -p -c
 ```
 
-Recursively collects all files under `src/`, prepends each with its relative path header, and copies everything to the clipboard.
+Recursively collects all files under `src/`, prepends each with its path header (as given, with a leading `./` stripped), and copies everything to the clipboard.
 
 ### Directory with exclusions
 
@@ -363,7 +363,7 @@ c/file.txt
 |------|--------------------------------|
 | 0    | Success                        |
 | 1    | General error (I/O, memory)    |
-| 2    | Invalid command line arguments |
+| 2    | Invalid command line arguments, or -c and -o used together |
 | 3    | Output file error              |
 | 4    | Clipboard tool not found       |
 | 5    | libmagic initialization error  |

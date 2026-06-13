@@ -19,6 +19,7 @@ int buf_append(buffer *b, const char *data, size_t len)
 {
     if (len == 0) return 0;
     while (b->len + len + 1 > b->cap) {
+        if (b->cap > (size_t)-1 / 2) return -1;
         size_t new_cap = b->cap * 2;
         char *tmp = realloc(b->data, new_cap);
         if (!tmp) return -1;

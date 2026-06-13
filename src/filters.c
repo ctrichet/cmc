@@ -1,8 +1,8 @@
 #include "filters.h"
+#include "util.h"
 #include <fnmatch.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
 
 int magic_ctx_init(magic_ctx *ctx)
 {
@@ -65,6 +65,14 @@ static int matches_selection(const char *path, config *cfg)
             return 1;
         if (path_under_dir(path, pat))
             return 1;
+        const char *p = path;
+        while ((p = strchr(p, '/')) != NULL) {
+            p++;
+            if (fnmatch(pat, p, FNM_PATHNAME) == 0)
+                return 1;
+            if (path_under_dir(p, pat))
+                return 1;
+        }
     }
     return 0;
 }
@@ -93,8 +101,7 @@ static int matches_exclusion(const char *path, config *cfg)
 
 int should_include(const char *path, config *cfg, magic_ctx *ctx)
 {
-    const char *rel = path;
-    while (rel[0] == '.' && rel[1] == '/') rel += 2;
+    const char *rel = strip_dot_slash(path);
 
     if (cfg->n_selection_patterns > 0) {
         if (!matches_selection(rel, cfg) && !matches_selection(path, cfg))
