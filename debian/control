@@ -1,0 +1,15 @@
+Source: cmc
+Section: utils
+Priority: optional
+Maintainer: cmc developers
+Build-Depends: debhelper-compat (= 12), libmagic-dev
+Standards-Version: 4.6.0
+
+Package: cmc
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmagic1 (>= 1:5.0)
+Recommends: xclip, wl-clipboard
+Description: Copy Multiple Contents - collect file contents for LLM context
+ cmc is a command-line utility that collects the contents of multiple files
+ and outputs them to the system clipboard, a file, or standard output.
+ It is designed for preparing source code and project context for LLMs.
