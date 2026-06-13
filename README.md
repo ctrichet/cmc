@@ -203,9 +203,9 @@ Arguments are parsed **left to right**.
 - If **no selection pattern** is given, all discovered files are included (subject to exclusions).
 
 ```
-   selection patterns               exclusion patterns
-  ┌────────────────────┐          ┌──────────────────────────┐
-  cmc *.c *.h -e *_test.* *_mock.*
+     selection patterns     exclusion patterns
+     ┌───────────────┐  ┌──────────────────────────┐
+  cmc *.c *.h         -e *_test.* *_mock.*
 ```
 
 ```bash
